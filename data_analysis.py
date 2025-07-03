@@ -1,21 +1,29 @@
 import streamlit as st
+import streamlit.components.v1 as components
+import json
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 
 
+def log_to_console(message):
+    try:
+        print(json.dumps(message))
+    except TypeError:
+        if hasattr(message, 'tolist'):
+            print(json.dumps(message.tolist()))
+        else:
+            print(str(message))
+
 # To set a webpage title, header and subtitle
-st.set_page_config(page_title = "Movies analysis",layout = 'wide')
-st.header("Interactive Dashboard")
-st.subheader("Interact with this dashboard using the widgets on the sidebar")
+st.set_page_config(page_title = "מנתח הסרטים",layout = 'wide',page_icon=":material/line_axis:")
+st.header("Movie Analysis Dashboard :material/line_axis:",divider=True)
+st.subheader("A dashboard to analyze movies based on their genre, year and user score", anchor=False,divider="gray")
+st.subheader("****************************", anchor=False)
 
 
 #read in the file
-movies_data = pd.read_csv("https://raw.githubusercontent.com/danielgrijalva/movie-stats/7c6a562377ab5c91bb80c405be50a0494ae8e582/movies.csv")
-movies_data.info()
-movies_data.duplicated()
-movies_data.count()
-movies_data.dropna()
+movies_data = pd.read_csv("movies.csv")
 
 
 # Creating sidebar widget filters from movies dataset
