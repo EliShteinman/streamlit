@@ -4,52 +4,62 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 
+
+# Set the page configuration for the Streamlit app
 st.set_page_config(
     page_title="Elections Results Dashboard",
     layout='wide',
     page_icon=":bar_chart:"
 )
+# # Load the data from CSV files for each Knesset election
+knesset_25_df = pd.read_csv('data/25.csv',encoding="utf-8-sig", usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_25_df.insert(0,'knesset',25)
+knesset_24_df = pd.read_csv('data/24.csv',encoding="iso-8859-8", usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_24_df.insert(0,'knesset',24)
+knesset_23_df = pd.read_csv('data/23.csv',encoding="iso-8859-8", usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_23_df.insert(0,'knesset',23)
+knesset_22_df = pd.read_csv('data/22.csv',encoding="iso-8859-8", usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_22_df.insert(0,'knesset',22)
+knesset_21_df = pd.read_csv('data/21.csv',encoding="iso-8859-8", usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_21_df.insert(0,'knesset',21)
+
+# Combine all Knesset DataFrames into a dictionary for easier access
+all_knesset_df = {
+    'knesset_25': knesset_25_df,
+    'knesset_24': knesset_24_df,
+    'knesset_23': knesset_23_df,
+    'knesset_22': knesset_22_df,
+    'knesset_21': knesset_21_df
+}
+
+
+# Concatenate all Knesset DataFrames into a single DataFrame
+all_knesset_list = list(all_knesset_df.values())
+elections_raw_df = pd.concat(
+    all_knesset_list,
+    ignore_index=True)
 
 
 
-# Set the page configuration
-
-@st.cache_data
-def load_data():
-    # Load the data from the CSV file
-    df = pd.read_csv("israeli_elections_results_1996_to_2015.csv", encoding="iso-8859-8")
-    return df
-elections_raw_df = load_data()
-print("Data loaded successfully!")
+mask = [elections_raw_df['בזב']> 12000]
+election_years = sorted(elections_raw_df.knesset.unique().tolist())
 
 
 
 
-#
-# st.header("Movie Analysis Dashboard :material/line_axis:",divider=True)
-# st.subheader("A dashboard to analyze movies based on their genre, year and user score", anchor=False,divider="gray")
-# st.subheader("****************************", anchor=False)
-#
-# #read in the file
-# movies_data = pd.read_csv("movies.csv")
-#
-#
-# # Creating sidebar widget filters from movies dataset
-# year_list = movies_data['year'].unique().tolist()
-# score_rating = movies_data['score'].unique().tolist()
-# genre_list = movies_data['genre'].unique().tolist()
-#
-#
-# # Add the filters. Every widget goes in here
-# sl = st.sidebar
-# sl.write("Welcome to the Movie Analysis Dashboard! :movie_camera:")
-# with st.sidebar:
-#     st.write("Select a range on the slider (it represents movie score) to view the total number of movies in a genre that falls within that range ")
-#     #create a slider to hold user scores
-#     new_score_rating = st.slider(label = "Choose a value:",
-#                                   min_value = 1.0,
-#                                   max_value = 10.0,
-#                                  value = (2.0,3.5))
+
+with st.sidebar:
+    st.write("Use the filters below to analyze the data by year, party, and other criteria.")
+    year_range = st.slider(
+        label="Select Election Year Range:",
+        min_value=min(election_years),
+        max_value=max(election_years),
+        value=(min(election_years), max(election_years)),
+        )
+    st.write("Election Year Range: ", year_range)
+
+
+
 #
 #     st.write("Select your preferred genre(s) and year to view the movies released that year and on that genre")
 #
