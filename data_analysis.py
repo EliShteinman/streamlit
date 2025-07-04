@@ -31,89 +31,87 @@ all_knesset_df = {
     'knesset_22': knesset_22_df,
     'knesset_21': knesset_21_df
 }
-
-
-# Concatenate all Knesset DataFrames into a single DataFrame
 all_knesset_list = list(all_knesset_df.values())
-elections_raw_df = pd.concat(
-    all_knesset_list,
-    ignore_index=True)
+elections_raw_df = pd.concat(all_knesset_list, ignore_index=True)
 
-
-
-mask = [elections_raw_df['בזב']> 12000]
-election_years = sorted(elections_raw_df.knesset.unique().tolist())
+######################################################################
 
 
 
 
 
-with st.sidebar:
-    st.write("Use the filters below to analyze the data by year, party, and other criteria.")
-    year_range = st.slider(
-        label="Select Election Year Range:",
-        min_value=min(election_years),
-        max_value=max(election_years),
-        value=(min(election_years), max(election_years)),
+Knesset_number = sorted(elections_raw_df.knesset.unique().tolist())
+all_parties = elections_raw_df.columns[7:].tolist()
+votes_by_party_and_knesset = elections_raw_df.groupby('knesset')[elections_raw_df.columns[7:]].sum()
+top_10_parties_per_row = votes_by_party_and_knesset.apply(lambda row: row.nlargest(10).index.tolist(), axis=1)
+
+
+party_list = sorted(top_10_parties_per_row.explode().unique().tolist())
+
+
+
+
+col1, col2 = st.columns([1, 3], gap="large",border=True)
+with col1:
+    st.markdown("### Data Filtering")
+
+    st.write(
+        "Use the filters below to analyze the data by Knesset number, party, or other criteria. "
+        "You can narrow down the data range by selecting a specific range of Knesset sessions."
+    )
+
+    # Create a slider widget for Knesset numbers
+    Knesset_range = st.slider(
+        label="Select Knesset number range:",
+        min_value=min(Knesset_number),
+        max_value=max(Knesset_number),
+        value=(min(Knesset_number), max(Knesset_number)),
+        key="Knesset_range_slider"
+    )
+    st.write("Knesset number: ", Knesset_range)
+    st.markdown("___")
+    st.markdown("""
+    ### Select up to 3 parties to compare
+
+    By default, the dropdown includes only parties that appeared in the **Top 10** in at least one of the last 5 elections.
+
+    You can start typing a party letter (e.g. `מחל`, `פה`, `שס`) or select from the dropdown below.
+    """)
+    party_choice = st.multiselect(
+        label="Select Party:",
+        options=party_list,
+        key="party_choice_multiselect",
+        max_selections=3,
+        accept_new_options=True,
+        help="You can type any party name (Hebrew) or select from the list. Up to 5 allowed."
+    )
+
+    valid_choices = [p for p in party_choice if p in all_parties]
+    invalid_choices = [p for p in party_choice if p not in all_parties]
+    if invalid_choices:
+        st.warning(f"Invalid values removed: {invalid_choices}")
+        st.info("Please select valid parties only.")
+    else:
+        st.success(f"You selected: {valid_choices}")
+
+    st.markdown("""
+    If you can't find a party in the dropdown, you can type it manually.
+
+    All parties are referred to by their **ballot letters** (e.g. `מחל` for Likud).
+    """)
+    st.markdown("""
+    For your convenience, here is the **full list of party letters** that appeared in past elections.
+    """)
+
+    with st.expander("Show / Hide full party letter list"):
+        st.markdown(
+            " ".join(
+                f"<span style='background-color:#eee; padding:6px 10px; margin:5px; "
+                f"border-radius:8px; display:inline-block; font-size:18px; font-family:sans-serif'>{party}</span>"
+                for party in all_parties
+            ),
+            unsafe_allow_html=True
         )
-    st.write("Election Year Range: ", year_range)
 
-
-
-#
-#     st.write("Select your preferred genre(s) and year to view the movies released that year and on that genre")
-#
-#     #create a multiselect option that holds genre
-#     new_genre_list = st.multiselect('Choose Genre:', genre_list, default = ['Animation', 'Horror', 'Fantasy', 'Romance'])
-#
-#     #create a selectbox option that holds all unique years
-#     year = st.selectbox('Choose a Year', year_list, 0)
-#
-# #Configure the slider widget for interactivity
-# score_info = (movies_data['score'].between(*new_score_rating))
-#
-#
-#
-#
-# #Configure the selectbox and multiselect widget for interactivity
-# new_genre_year = (movies_data['genre'].isin(new_genre_list)) & (movies_data['year'] == year)
-#
-# #VISUALIZATION SECTION
-# #group the columns needed for visualizations
-# # col1, col2 = st.columns([2,3],border=True)
-#
-# col1 = st.columns(1, gap="large")[0]
-# with col1:
-#     st.write("""#### Lists of movies filtered by year and Genre """)
-#     dataframe_genre_year = movies_data[new_genre_year].groupby(['name', 'genre'])['year'].sum()
-#     dataframe_genre_year = dataframe_genre_year.reset_index()
-#     st.dataframe(dataframe_genre_year, width = 700)
-#
-# # with col2:
-# #     st.write("""#### User score of movies and their genre """)
-# #     rating_count_year = movies_data[score_info].groupby('genre')['score'].count()
-# #     rating_count_year = rating_count_year.reset_index()
-# #     figpx = px.line(rating_count_year, x = 'genre', y = 'score')
-# #     st.plotly_chart(figpx)
-#
-#
-#
-#
-#  # creating a bar graph with matplotlib
-# st.write("""
-# Average Movie Budget, Grouped by Genre
-#     """)
-# avg_budget = movies_data.groupby('genre')['budget'].mean().round()
-# avg_budget = avg_budget.reset_index()
-# genre = avg_budget['genre']
-# avg_bud = avg_budget['budget']
-#
-# fig = plt.figure(figsize = (19, 10))
-#
-# plt.bar(genre, avg_bud, color = 'maroon')
-# plt.xlabel('genre')
-# plt.ylabel('budget')
-# plt.title('Matplotlib Bar Chart Showing The Average Budget of Movies in Each Genre')
-# st.pyplot(fig)
-#
-#
+with col2:
+    pass
