@@ -5,3 +5,5 @@ watchdog
 xlrd
 ipython
 matplotlib
+lxml
+requests
