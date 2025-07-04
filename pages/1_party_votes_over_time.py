@@ -2,11 +2,13 @@
 import streamlit as st
 import plotly.express as px
 from core.data_loader import load_and_prepare_data
+from core.ui import apply_rtl
 st.set_page_config(
     page_title="השוואת קולות למפלגות",
     page_icon="📈",
     layout="wide"
 )
+apply_rtl()
 
 
 elections_raw_df, Knesset_number, all_parties, party_list, votes_by_party_and_knesset = load_and_prepare_data()
