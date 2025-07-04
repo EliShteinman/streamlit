@@ -108,7 +108,7 @@ except FileNotFoundError:
 
 # Display the main title and a descriptive subtitle for the dashboard.
 st.header("📊 דאשבורד תוצאות הבחירות בישראל")
-st.write("חקור את תוצאות הבחירות לכנסת, מהכנסת ה-17 ועד הכנסת ה-25. ניתן לסנן את הנתונים לפי מספר כנסת ולהשוות את נתוני ההצבעה למפלגות השונות לאורך זמן.")
+st.write("חקור את תוצאות הבחירות לכנסת, מהכנסת ה-16 ועד הכנסת ה-25. ניתן לסנן את הנתונים לפי מספר כנסת ולהשוות את נתוני ההצבעה למפלגות השונות לאורך זמן.")
 
 # Create a two-column layout for the UI elements. The right column is 3x wider than the left.
 col1, col2 = st.columns([1, 3], gap="large", border=True)
