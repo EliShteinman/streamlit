@@ -83,6 +83,7 @@ with col1:
         label="Select up to 3 parties:",
         options=party_list,
         key="party_choice_multiselect",
+        default=['ג','שס','מחל'],
         max_selections=3,
         accept_new_options=True,
         help="You can type a party letter (in Hebrew) or select from the list."
@@ -118,5 +119,16 @@ with col1:
             unsafe_allow_html=True
         )
 
+party_votes_over_time = votes_by_party_and_knesset.loc[Knesset_range[0]:Knesset_range[1], party_choice]
+
 with col2:
-    pass
+    figpx = px.line(
+        party_votes_over_time,
+        x=party_votes_over_time.index.astype(str),
+        y=party_choice,
+        title="Party Votes Over Time",
+        labels={"value": "Votes", "knesset": "Knesset Number"},
+        markers=True
+    )
+    figpx.update_xaxes(type="category")
+    st.plotly_chart(figpx)
