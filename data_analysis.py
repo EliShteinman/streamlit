@@ -53,55 +53,60 @@ party_list = sorted(top_10_parties_per_row.explode().unique().tolist())
 
 col1, col2 = st.columns([1, 3], gap="large",border=True)
 with col1:
-    st.markdown("### Data Filtering")
+    st.markdown("### Filter the Data")
 
     st.write(
-        "Use the filters below to analyze the data by Knesset number, party, or other criteria. "
-        "You can narrow down the data range by selecting a specific range of Knesset sessions."
+        "Use the filters below to explore the election data by Knesset number and party. "
+        "You can narrow the data using the slider and compare specific parties of interest."
     )
 
-    # Create a slider widget for Knesset numbers
+    # Knesset range slider
     Knesset_range = st.slider(
-        label="Select Knesset number range:",
+        label="Knesset number range:",
         min_value=min(Knesset_number),
         max_value=max(Knesset_number),
         value=(min(Knesset_number), max(Knesset_number)),
         key="Knesset_range_slider"
     )
-    st.write("Knesset number: ", Knesset_range)
-    st.markdown("___")
-    st.markdown("""
-    ### Select up to 3 parties to compare
+    st.write("Selected Knesset range:", Knesset_range)
 
-    By default, the dropdown includes only parties that appeared in the **Top 10** in at least one of the last 5 elections.
+    st.markdown("---")
 
-    You can start typing a party letter (e.g. `מחל`, `פה`, `שס`) or select from the dropdown below.
-    """)
+    st.markdown("### Compare Parties")
+
+    st.write(
+        "Select up to **3 party letters** (ballot symbols) to compare. "
+        "The list below includes only parties that appeared in the **Top 10** in at least one of the last 5 elections."
+    )
+
     party_choice = st.multiselect(
-        label="Select Party:",
+        label="Select up to 3 parties:",
         options=party_list,
         key="party_choice_multiselect",
         max_selections=3,
         accept_new_options=True,
-        help="You can type any party name (Hebrew) or select from the list. Up to 5 allowed."
+        help="You can type a party letter (in Hebrew) or select from the list."
     )
 
+    # Validation
     valid_choices = [p for p in party_choice if p in all_parties]
     invalid_choices = [p for p in party_choice if p not in all_parties]
+
     if invalid_choices:
-        st.warning(f"Invalid values removed: {invalid_choices}")
-        st.info("Please select valid parties only.")
+        st.warning(f"Invalid entries removed: {invalid_choices}")
+        st.info("Please select valid party letters only.")
     else:
-        st.success(f"You selected: {valid_choices}")
+        if valid_choices:
+            st.success(f"Selected parties: {', '.join(valid_choices)}")
 
+    # Additional info
     st.markdown("""
-    If you can't find a party in the dropdown, you can type it manually.
+        If you can't find a party in the dropdown, try typing its ballot letter manually.
 
-    All parties are referred to by their **ballot letters** (e.g. `מחל` for Likud).
+        All parties are listed by their official **ballot letters** (e.g. `מחל` for Likud).
     """)
-    st.markdown("""
-    For your convenience, here is the **full list of party letters** that appeared in past elections.
-    """)
+
+    st.markdown("For reference, here is the full list of known party letters:")
 
     with st.expander("Show / Hide full party letter list"):
         st.markdown(
