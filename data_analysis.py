@@ -2,8 +2,6 @@
 import streamlit as st  # For creating the web app interface
 import pandas as pd  # For data manipulation and analysis
 import plotly.express as px  # For creating interactive plots
-import matplotlib.pyplot as plt  # Used for plotting, though not explicitly in the final script
-import streamlit.components.v1 as components  # For embedding custom components if needed
 
 # Set the page configuration for the Streamlit app
 # This function sets the title that appears in the browser tab, the layout width, and the icon.
@@ -13,37 +11,52 @@ st.set_page_config(
     page_icon=":bar_chart:"  # An emoji used as the page icon
 )
 
+
+pormat = lambda col: not (col.startswith('Unnamed')
+                          or col == 'סמל ועדה'
+                          or col == 'סמל ישוב'
+                          or col == 'מספר קלפי'
+                          or col == 'סמל קלפי'
+                          or col == 'ת. עדכון'
+                          or col == 'כתובת')
+
+
 # # Load the data from CSV files for each Knesset election
 # The following section reads election data for Knessets 21 through 25 from separate CSV files.
 
 # Load data for the 25th Knesset
 # 'encoding="utf-8-sig"' is used to handle Hebrew characters correctly.
-# 'usecols' with a lambda function is used to exclude columns that are either unnamed or named 'סמל ועדה'.
-knesset_25_df = pd.read_csv('data/25.csv', encoding="utf-8-sig",
-                            usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_25_df = pd.read_csv('data/25.csv', encoding="utf-8-sig", usecols=pormat)
 # Add a 'knesset' column to identify which election this data belongs to.
 knesset_25_df.insert(0, 'knesset', 25)
 
 # Load data for the 24th Knesset
-# 'encoding="iso-8859-8"' is another encoding for Hebrew characters, often used in older files.
-knesset_24_df = pd.read_csv('data/24.csv', encoding="iso-8859-8",
-                            usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+# 'encoding="iso-8859-8"' is used to handle Hebrew characters correctly.
+knesset_24_df = pd.read_csv('data/24.csv', encoding="iso-8859-8", usecols=pormat)
 knesset_24_df.insert(0, 'knesset', 24)
 
 # Load data for the 23rd Knesset
-knesset_23_df = pd.read_csv('data/23.csv', encoding="iso-8859-8",
-                            usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_23_df = pd.read_csv('data/23.csv', encoding="iso-8859-8", usecols=pormat)
 knesset_23_df.insert(0, 'knesset', 23)
 
 # Load data for the 22nd Knesset
-knesset_22_df = pd.read_csv('data/22.csv', encoding="iso-8859-8",
-                            usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_22_df = pd.read_csv('data/22.csv', encoding="iso-8859-8", usecols=pormat)
 knesset_22_df.insert(0, 'knesset', 22)
 
 # Load data for the 21st Knesset
-knesset_21_df = pd.read_csv('data/21.csv', encoding="iso-8859-8",
-                            usecols=lambda col: not (col.startswith('Unnamed') or col == 'סמל ועדה'))
+knesset_21_df = pd.read_csv('data/21.csv', encoding="iso-8859-8", usecols=pormat)
 knesset_21_df.insert(0, 'knesset', 21)
+
+
+knesset_20_df = pd.read_csv('data/20.csv',encoding="utf-8-sig", usecols=pormat)
+knesset_20_df.insert(0,'knesset',20)
+knesset_19_df = pd.read_csv('data/19.csv',encoding="utf-8-sig", usecols=pormat)
+knesset_19_df.insert(0,'knesset',19)
+knesset_18_df = pd.read_csv('data/18.csv',encoding="iso-8859-8", usecols=pormat)
+knesset_18_df.insert(0,'knesset',18)
+knesset_17_df = pd.read_excel('data/17.xls',usecols=pormat)
+knesset_17_df.insert(0,'knesset',17)
+
 
 # Combine all Knesset DataFrames into a dictionary for easier access
 all_knesset_df = {
@@ -51,11 +64,18 @@ all_knesset_df = {
     'knesset_24': knesset_24_df,
     'knesset_23': knesset_23_df,
     'knesset_22': knesset_22_df,
-    'knesset_21': knesset_21_df
+    'knesset_21': knesset_21_df,
+    'knesset_20': knesset_20_df,
+    'knesset_19': knesset_19_df,
+    'knesset_18': knesset_18_df,
+    'knesset_17': knesset_17_df
 }
 
 # Create a list of all the dataframes
 all_knesset_list = list(all_knesset_df.values())
+for knesset in all_knesset_list:
+    knesset.columns = knesset.columns.str.strip().str.replace("''", "", regex=False)
+
 # Concatenate all dataframes into a single, comprehensive dataframe
 # 'ignore_index=True' resets the index of the combined dataframe.
 elections_raw_df = pd.concat(all_knesset_list, ignore_index=True)
@@ -67,11 +87,11 @@ elections_raw_df = pd.concat(all_knesset_list, ignore_index=True)
 Knesset_number = sorted(elections_raw_df.knesset.unique().tolist())
 
 # Get a list of all party names (column headers starting from the 8th column).
-all_parties = elections_raw_df.columns[7:].tolist()
+all_parties = elections_raw_df.columns[6:].tolist()
 
 # Group the data by 'knesset' and calculate the sum of votes for each party in each Knesset.
 # This creates a summary table of total votes per party for each election.
-votes_by_party_and_knesset = elections_raw_df.groupby('knesset')[elections_raw_df.columns[7:]].sum()
+votes_by_party_and_knesset = elections_raw_df.groupby('knesset')[elections_raw_df.columns[6:]].sum()
 
 # For each Knesset (each row), find the names of the top 10 parties by vote count.
 top_10_parties_per_row = votes_by_party_and_knesset.apply(lambda row: row.nlargest(10).index.tolist(), axis=1)
@@ -82,6 +102,14 @@ party_list = sorted(top_10_parties_per_row.explode().unique().tolist())
 
 ######################################################################
 # User Interface (UI) Layout and Widgets
+
+st.header("Israeli Elections Results Dashboard")  # Main title of the app
+st.subheader("Explore Election Results by Knesset and Party")  # Subtitle for context
+st.write(
+    "This dashboard allows you to explore the results of Israeli elections from Knesset 17 to Knesset 25. "
+    "You can filter the data by Knesset number and compare votes for different parties over time."
+)
+
 
 # Create a layout with two columns: a smaller one for filters and a larger one for the chart.
 # The ratio is 1:3, and a gap is added for visual separation.
