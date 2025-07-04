@@ -91,8 +91,10 @@ def load_and_prepare_data():
         top_10_parties_per_row = votes_last_6_elections.apply(lambda row: row.nlargest(10).index.tolist(), axis=1)
         # Create a unified, sorted list of all parties that were in the top 10 in at least one election.
         party_list = sorted(top_10_parties_per_row.explode().unique().tolist())
+        # Calculate the percentage of votes each party received in each Knesset.
+        votes_percent_by_knesset = votes_by_party_and_knesset.div(votes_by_party_and_knesset.sum(axis=1), axis=0) * 100
 
-        return(elections_raw_df, Knesset_number, all_parties, party_list, votes_by_party_and_knesset)
+        return(elections_raw_df, Knesset_number, all_parties, party_list, votes_by_party_and_knesset, votes_percent_by_knesset)
 
     # Handle cases where the data files are not found in the 'data' directory.
     except FileNotFoundError:

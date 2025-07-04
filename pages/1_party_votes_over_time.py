@@ -11,7 +11,7 @@ st.set_page_config(
 apply_rtl()
 
 
-elections_raw_df, Knesset_number, all_parties, party_list, votes_by_party_and_knesset = load_and_prepare_data()
+elections_raw_df, Knesset_number, all_parties, party_list, votes_by_party_and_knesset, votes_percent_by_knesset = load_and_prepare_data()
 
 # --- User Interface (UI) Layout ---
 
@@ -83,29 +83,41 @@ with col1:
 
 # Filter the aggregated data based on the selected Knesset range and parties.
 party_votes_over_time = votes_by_party_and_knesset.loc[Knesset_range[0]:Knesset_range[1], valid_choices]
+party_percent_over_time = votes_percent_by_knesset.loc[Knesset_range[0]:Knesset_range[1], valid_choices]
 
 # The 'with' block places the following elements inside the second column.
 with col2:
+    show_percent = st.checkbox(
+        label="הצג אחוזים במקום מספר קולות",
+        value=False,  # Default to showing raw vote counts.
+        key="show_percent_checkbox"  # Link the checkbox state to the session state.
+    )
     # If no valid parties are selected, display an informational message.
     if not valid_choices:
         st.info("יש לבחור לפחות מפלגה אחת חוקית כדי להציג גרף.")
     # Otherwise, create and display the line chart.
     else:
+        data_to_plot = party_percent_over_time if show_percent else party_votes_over_time
         # Generate a line chart using Plotly Express.
         figpx = px.line(
-            party_votes_over_time,
-            x=party_votes_over_time.index.astype(str), # Use Knesset number as the x-axis.
+            data_to_plot,
+            x=data_to_plot.index.astype(str), # Use Knesset number as the x-axis.
             y=valid_choices, # Plot lines for each selected party.
             title="הצבעות למפלגות לאורך זמן",
-            labels={"value": "מספר קולות", "knesset": "כנסת", "variable": "מפלגה"},
+            labels={
+                "value": "אחוז מהקולות" if show_percent else "מספר קולות",
+                "knesset": "כנסת",
+                "variable": "מפלגה",
+                "x": "כנסת"
+            },
             markers=True # Add markers to each data point on the lines.
         )
         # Ensure the x-axis is treated as a categorical axis.
         figpx.update_xaxes(type="category")
+        # When showing percentages, fix Y-axis to range [0, 100]
+        if show_percent:
+            figpx.update_yaxes(range=[0, 100])
         # Set the title for the chart's legend.
         figpx.update_layout(legend_title_text='מפלגות')
         # Display the Plotly chart in the Streamlit app, making it fit the container's width.
         st.plotly_chart(figpx, use_container_width=True)
-
-
-st.markdown('___')
