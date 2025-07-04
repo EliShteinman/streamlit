@@ -58,11 +58,16 @@ try:
     knesset_17_df = pd.read_excel('data/17.xls', usecols=pormat)
     knesset_17_df.insert(0, 'knesset', 17)
 
+    # Read data for the 16th Knesset and add a 'knesset' identifier column.
+    knesset_16_df = pd.read_excel('data/16.xls', usecols=pormat)
+    knesset_16_df.insert(0, 'knesset', 16)
+
     # Store all individual Knesset DataFrames in a dictionary for structured access.
     all_knesset_df = {
         'knesset_25': knesset_25_df, 'knesset_24': knesset_24_df, 'knesset_23': knesset_23_df,
         'knesset_22': knesset_22_df, 'knesset_21': knesset_21_df, 'knesset_20': knesset_20_df,
-        'knesset_19': knesset_19_df, 'knesset_18': knesset_18_df, 'knesset_17': knesset_17_df
+        'knesset_19': knesset_19_df, 'knesset_18': knesset_18_df, 'knesset_17': knesset_17_df,
+        'knesset_16': knesset_16_df
     }
 
     # Create a list of DataFrames from the dictionary values for easier processing.
@@ -71,7 +76,7 @@ try:
     # Iterate through each DataFrame to clean up column names before merging.
     for df in all_knesset_list:
         # Remove extra whitespace and quotation marks from column headers.
-        df.columns = df.columns.str.strip().str.replace("''", "", regex=False).str.replace('"', '', regex=False)
+        df.columns = df.columns.str.strip().str.replace("''", "", regex=False).str.replace('"', '', regex=False).str.replace('בוחרים','בזב')
 
     # Combine all individual Knesset DataFrames into a single, comprehensive DataFrame.
     elections_raw_df = pd.concat(all_knesset_list, ignore_index=True)
@@ -85,8 +90,12 @@ try:
 
     # Group data by Knesset and sum the total votes for each party.
     votes_by_party_and_knesset = elections_raw_df.groupby('knesset')[all_parties].sum()
+
+    last_6_knessets = votes_by_party_and_knesset.index.sort_values(ascending=False)[:6]
+    votes_last_6_elections = votes_by_party_and_knesset.loc[last_6_knessets]
+
     # For each Knesset, identify the top 10 parties by vote count.
-    top_10_parties_per_row = votes_by_party_and_knesset.apply(lambda row: row.nlargest(10).index.tolist(), axis=1)
+    top_10_parties_per_row = votes_last_6_elections.apply(lambda row: row.nlargest(10).index.tolist(), axis=1)
     # Create a unified, sorted list of all parties that were in the top 10 in at least one election.
     party_list = sorted(top_10_parties_per_row.explode().unique().tolist())
 
@@ -123,6 +132,9 @@ with col1:
     st.markdown("---") # Add a visual separator.
 
     st.markdown("### השווה בין מפלגות")
+
+    st.caption("הרשימה מציגה מפלגות מובילות מהבחירות האחרונות לנוחיותך.")
+
     # Check if a selection already exists in the session state to handle potential invalid entries.
     if "party_choice_multiselect" in st.session_state:
         selected_parties = st.session_state.party_choice_multiselect
@@ -143,7 +155,7 @@ with col1:
         default=['ג', 'שס'], # Pre-select default parties.
         max_selections=3,
         accept_new_options=True, # Allow users to type in party symbols.
-        help="ניתן להקליד את אות המפלגה או לבחור מהרשימה."
+        help="ניתן לבחור מהרשימה או להקליד אות של **כל מפלגה** מהעבר (גם אם אינה ברשימה) וללחוץ Enter."
     )
 
     # Create an expandable section to show all available party symbols.
