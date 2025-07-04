@@ -1,7 +1,5 @@
 streamlit
 pandas
 plotly
-matplotlib
 watchdog
-kagglehub
 xlrd
